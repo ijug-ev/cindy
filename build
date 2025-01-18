@@ -2,7 +2,7 @@
 mvn clean package
 cp src/main/docker/Dockerfile target
 pushd ./target
-docker build -t monika .
+docker build -t cindy .
 popd
-docker run -it --rm -P -e OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED=True -e OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf -e OTEL_EXPORTER_OTLP_ENDPOINT=https://grafana.ijug.eu:8080/otlp -e OTEL_SERVICE_NAME=Monika -e OTEL_METRIC_EXPORT_INTERVAL=15000 -e OTEL_METRICS_EXPORTER=otlp -e OTEL_LOGS_EXPORTER=none -e OTEL_TRACES_EXPORTER=none monika
+docker run -it --rm -P cindy
 

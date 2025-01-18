@@ -1,28 +1,22 @@
-# 👱🏻‍♀️ Monika: The iJUG's homebrewn Infrastructure Monitor
+# 👱🏻‍♀️ Cindy: iJUG's homebrewn event dispatcher ☕
 
-*Monika* is a Java-implemented RESTful Web Service serving as an agent for Uptime Kuma to read the local disk's free space.
-
-
-## Use
-
-* Disk Free: `/monika/status` responds status `100` on hardware failures, status `901` if volume has less than 20% free, status `2XX` in all other cases (where `XX` is the lowest free value in %). The status text contains the smallest free percentage of all monitored volumes. Example: `260 Smallest free volume is 60 %.`
-* Health Check: `/monika/health` responds status 204 always.
+*Cindy* is a Java-implemented RESTful Web Service for collecting events in [iCalender](https://www.rfc-editor.org/rfc/rfc5545.txt) format and publishing them on a Mastodon instance.
 
 
 ## Administrate
 
-* `docker logs monika` - Contains one entry for each monitored path per `/status` request, like:
-  ```
-  /home is 60 % free
-  /var is 75 % free
-  ```
+* `docker logs cindy` - Contains (at least) one entry for each processed event.
 
 
 ## Deploy
 
-* `docker run --name monika -d -e MONITORED_PATHS=/home:/var -e IP_PORT=8123 -P ghcr.io/ijug-ev/monika`: Monika will listen to requests on port 8123 and monitor paths `/home` and `/var`.
-  - `MONITORED_PATH`: Monika will monitor each path in this list. The default is `/`, i. e. only the root file system is monitored.
-  - `IP_PORT`: Monika will listen to this IP port. The default is `8080`.
+* `docker run --name cindy -d -e CINDY_IP_PORT=7231 -e ... -P ghcr.io/ijug-ev/cindy`: Cindy will listen to requests on port 7231.
+  - `CINDY_IP_PORT`: Cindy will listen to this IP port. The default is `8080`.
+  -	`CINDY_MASTODON_HOST`: Cindy will publish events on this Mastodon host. There is no default.
+  -	`CINDY_MASTODON_ACCESS_TOKEN`: Cindy uses this access token to log in to the Mastodon host. There is no default.
+  -	`CINDY_LAST_RUN_FILE`: Cindy rembembers the instant when it last pulled calenders, so it understands which calender events are new/modified, and which are old. The default is `lastRun`
+  -	`CINDY_POLLING_SECONDS`: Time between two calendar polls. The default frequency is one minute, i. e. `60`.
+  - `CINDY_CALENDAR_SOURCES`: Comma-separated list of download URLs of calendars to poll. There is no default.
 
 
 ## Build
@@ -33,7 +27,7 @@
 mvn clean package
 cp src/main/docker/Dockerfile target
 pushd ./target
-docker build -t monika .
+docker build -t cindy .
 popd
-docker run -it --rm -P monika
+docker run -it --rm -P cindy
 ```

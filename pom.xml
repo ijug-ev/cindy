@@ -3,16 +3,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>eu.headcrashing.eclipsecon.lightweightmicroservices</groupId>
-	<artifactId>monika</artifactId>
+	<groupId>eu.ijug.services</groupId>
+	<artifactId>cindy</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.release>21</maven.compiler.release>
 		<jaxrs.version>3.1.0</jaxrs.version>
-		<jersey.version>3.1.9</jersey.version>
-		<otelsdk.version>1.43.0</otelsdk.version>
+		<jersey.version>3.1.10</jersey.version>
+		<ical4j.version>4.1.0</ical4j.version>
+		<bigbone.version>2.0.0-SNAPSHOT</bigbone.version>
 	</properties>
 
 	<dependencyManagement>
@@ -21,14 +22,6 @@
 				<groupId>org.glassfish.jersey</groupId>
 				<artifactId>jersey-bom</artifactId>
 				<version>${jersey.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>io.opentelemetry</groupId>
-				<artifactId>opentelemetry-bom</artifactId>
-				<version>${otelsdk.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -61,50 +54,62 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-api</artifactId>
+			<groupId>org.mnode.ical4j</groupId>
+			<artifactId>ical4j</artifactId>
+			<version>${ical4j.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-exporter-otlp</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-exporter-logging</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+			<groupId>social.bigbone</groupId>
+			<artifactId>bigbone</artifactId>
+			<version>${bigbone.version}</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>maven-central-snapshots</id>
+			<name>Maven Central Snapshot Repository</name>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.13.0</version>
 			</plugin>
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.5.0</version>
 				<configuration>
-					<mainClass>MonikaBootstrap</mainClass>
+					<mainClass>CindyBootstrap</mainClass>
+					<systemProperties>
+						<systemProperty>
+							<key>java.util.logging.SimpleFormatter.format</key>
+							<value>[%1$tF %1$tT.%1$tL] [%4$s] %5$s%n</value>
+						</systemProperty>
+					</systemProperties>
 				</configuration>
 			</plugin>
 
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.3.0</version>
+				<version>3.4.2</version>
 				<configuration>
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>MonikaBootstrap</mainClass>
+							<mainClass>CindyBootstrap</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -112,7 +117,7 @@
 
 			<plugin>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.5.1</version>
+				<version>3.6.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -147,7 +152,7 @@
 									</excludes>
 								</filter>
 								<filter>
-									<artifact>io.opentelemetry:*</artifact>
+									<artifact>*:ical4j</artifact>
 									<includes>
 										<include>**/*</include>
 									</includes>
@@ -156,7 +161,7 @@
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>MonikaBootstrap</mainClass>
+									<mainClass>CindyBootstrap</mainClass>
 									<manifestEntries>
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>
