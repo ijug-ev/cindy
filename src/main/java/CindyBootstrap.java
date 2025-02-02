@@ -66,6 +66,7 @@ import social.bigbone.api.exception.BigBoneRequestException;
 public final class CindyBootstrap {
 	private static final int MAXIMUM_MASTODON_MESSAGE_LENGTH = 500;
 	private static final DateTimeFormatter GERMAN_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy HH:mm", GERMANY);
+	private static final DateTimeFormatter GERMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy", GERMANY);
 	private static final Logger LOGGER = Logger.getLogger(CindyBootstrap.class.getName());
 	private static final ZoneId EUROPE_BERLIN = ZoneId.of("Europe/Berlin");
 
@@ -218,8 +219,15 @@ public final class CindyBootstrap {
 										message.setLength(0);
 										if (event.summary() != null)
 											message.append("📢 ").append(event.summary());
-										if (event.begin() != null)
-											message.append("\n📅 ").append(GERMAN_TIMESTAMP_FORMATTER.format(event.begin()));
+										switch (event.begin()) {
+											case null:
+												break;
+											case LocalDate ld:
+												message.append("\n📅 ").append(GERMAN_DATE_FORMATTER.format(ld));
+												break;
+											default:
+												message.append("\n📅 ").append(GERMAN_TIMESTAMP_FORMATTER.format(event.begin()));
+										}
 										if (event.location() != null)
 											message.append("\n🏠️ ").append(event.location());
 										final var splr = message.toString();
