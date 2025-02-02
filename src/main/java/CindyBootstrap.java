@@ -75,7 +75,7 @@ public final class CindyBootstrap {
 		final var lastRunFile = Path.of(System.getenv().getOrDefault("CINDY_LAST_RUN_FILE", "lastRun"));
 		final var ipPort = Integer.parseInt(System.getenv().getOrDefault("CINDY_IP_PORT", "8080"));
 		final var pollingInterval = 1_000 * Integer.parseInt(System.getenv().getOrDefault("CINDY_POLLING_SECONDS", "60"));
-		final var sources = List.of(System.getenv().getOrDefault("CINDY_CALENDAR_SOURCES", "").split(",")).stream().map(URI::create).toList();
+		final var sources = List.of(System.getenv().getOrDefault("CINDY_CALENDAR_SOURCES", "").split(",")).stream().map(String::trim).map(URI::create).toList();
 		final var redirectionsLimit = Integer.parseInt(System.getenv().getOrDefault("CINDY_REDIRECTIONS_LIMIT", "50"));
 
 		if (args.length > 0 && "--check-health".equals(args[0])) {
