@@ -5,7 +5,7 @@
 
 ## Administrate
 
-* `docker logs cindy` - Contains (at least) one entry for each processed event.
+* `docker logs cindy` - Contains (at least) one entry per synchronization run.
 
 
 ## Deploy
@@ -14,7 +14,7 @@
   - `CINDY_IP_PORT`: Cindy will listen to this IP port. The default is `8080`.
   -	`CINDY_MASTODON_HOST`: Cindy will publish events on this Mastodon host. There is no default.
   -	`CINDY_MASTODON_ACCESS_TOKEN`: Cindy uses this access token to log in to the Mastodon host. There is no default.
-  -	`CINDY_LAST_RUN_FILE`: Cindy rembembers the instant when it last pulled calenders, so it understands which calender events are new/modified, and which are old. The default is `lastRun`
+  -	`CINDY_DATA`: File system folder where Cindy persists internal data. For example, Cindy rembembers the instant when it last pulled calenders, so it understands which calender events are new/modified, and which are old. The default is `.`
   -	`CINDY_POLLING_SECONDS`: Time between two calendar polls. The default frequency is one minute, i. e. `60`.
   - `CINDY_CALENDAR_SOURCES`: Comma-separated list of download URLs of calendars to poll. There is no default.
 

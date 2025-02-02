@@ -72,7 +72,7 @@ public final class CindyBootstrap {
 	public static void main(final String[] args) throws InterruptedException, ExecutionException {
 		final var mastodonHost = System.getenv("CINDY_MASTODON_HOST");
 		final var mastodonAccessToken = System.getenv("CINDY_MASTODON_ACCESS_TOKEN");
-		final var lastRunFile = Path.of(System.getenv().getOrDefault("CINDY_LAST_RUN_FILE", "lastRun"));
+		final var lastRunFile = Path.of(System.getenv().getOrDefault("CINDY_DATA", "."), "lastRun");
 		final var ipPort = Integer.parseInt(System.getenv().getOrDefault("CINDY_IP_PORT", "8080"));
 		final var pollingInterval = 1_000 * Integer.parseInt(System.getenv().getOrDefault("CINDY_POLLING_SECONDS", "60"));
 		final var sources = List.of(System.getenv().getOrDefault("CINDY_CALENDAR_SOURCES", "").split(",")).stream().map(String::trim).map(URI::create).toList();
