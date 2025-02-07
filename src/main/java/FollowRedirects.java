@@ -1,13 +1,22 @@
+import static jakarta.ws.rs.core.Response.Status.MOVED_PERMANENTLY;
+import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import static jakarta.ws.rs.core.Response.Status.Family.REDIRECTION;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.ClientResponseContext;
 import jakarta.ws.rs.client.ClientResponseFilter;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.ext.Provider;
 
 /**
@@ -41,6 +50,8 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
     public static final String REDIRECTIONS_LIMIT = FollowRedirects.class.getName() + ".redirectionsLimit";
     private static final String REDIRECTIONS_COUNT = FollowRedirects.class.getName() + ".redirectCount";
     private static final Logger LOGGER = Logger.getLogger(FollowRedirects.class.getName());
+    private static final Set<Status> PERMANENT_REDIRECTION_STATUSCODES = EnumSet.of(MOVED_PERMANENTLY, PERMANENT_REDIRECT);
+    private static final Map<URI, URI> PERMANENT_REDIRECTION_LOCATIONS = new ConcurrentHashMap<>();
 
     @Override
     public void filter(final ClientRequestContext requestContext) throws IOException {
@@ -49,6 +60,22 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
 
         if (!requestContext.hasProperty(REDIRECTIONS_COUNT))
             requestContext.setProperty(REDIRECTIONS_COUNT, 0);
+
+        final var target = requestContext.getUri();
+        while (PERMANENT_REDIRECTION_LOCATIONS.get(requestContext.getUri()) instanceof URI location) {
+            final var redirectsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
+            final var redirectionsLimit = requestContext.getProperty(REDIRECTIONS_LIMIT);
+            if (redirectionsLimit instanceof Integer maxRedirects && redirectsCount > maxRedirects) {
+                LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
+                        .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
+                requestContext.abortWith(Response.status(PERMANENT_REDIRECT).location(location).build());
+                return;
+            }
+            requestContext.setUri(location);
+        }
+        if (!target.equals(requestContext.getUri()))
+            LOGGER.finer(() -> "Following permanent redirect from '%s' to '%s'..."
+                    .formatted(target, requestContext.getUri()));
     }
 
     @Override
@@ -77,6 +104,12 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
             LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
                     .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
             return;
+        }
+
+        if (PERMANENT_REDIRECTION_STATUSCODES.contains(responseContext.getStatusInfo().toEnum())) {
+            LOGGER.finer(() -> "Storing permanent redirect from '%s' to '%s'..."
+                    .formatted(requestContext.getUri(), location));
+            PERMANENT_REDIRECTION_LOCATIONS.put(requestContext.getUri(), location);
         }
 
         LOGGER.fine(() -> "Following redirect #%d from '%s' to '%s'..."
