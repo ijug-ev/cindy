@@ -61,7 +61,6 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
             return;
 
         var redirectionsCount = requestContext.getProperty(REDIRECTIONS_COUNT) instanceof Integer i ? i : 0;
-        final var target = requestContext.getUri();
         while (PERMANENT_REDIRECTION_LOCATIONS.get(requestContext.getUri()) instanceof URI location) {
             if (redirectionsLimit instanceof Integer maxRedirects && ++redirectionsCount > maxRedirects) {
                 final var rc = redirectionsCount;
@@ -71,11 +70,10 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
                 requestContext.abortWith(Response.status(PERMANENT_REDIRECT).location(location).build());
                 return;
             }
+            LOGGER.finer(() -> "Following permanent redirect from '%s' to '%s'..."
+                    .formatted(requestContext.getUri(), location));
             requestContext.setUri(location);
         }
-        if (!target.equals(requestContext.getUri()))
-            LOGGER.finer(() -> "Following permanent redirect from '%s' to '%s'..."
-                    .formatted(target, requestContext.getUri()));
         requestContext.setProperty(REDIRECTIONS_COUNT, redirectionsCount);
     }
 
