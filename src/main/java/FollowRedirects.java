@@ -1,6 +1,7 @@
 import static jakarta.ws.rs.core.Response.Status.MOVED_PERMANENTLY;
 import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import static jakarta.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,15 +60,14 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
         if (redirectionsLimit == null)
             return;
 
-        if (!requestContext.hasProperty(REDIRECTIONS_COUNT))
-            requestContext.setProperty(REDIRECTIONS_COUNT, 0);
-
+        var redirectionsCount = requestContext.getProperty(REDIRECTIONS_COUNT) instanceof Integer i ? i : 0;
         final var target = requestContext.getUri();
         while (PERMANENT_REDIRECTION_LOCATIONS.get(requestContext.getUri()) instanceof URI location) {
-            final var redirectionsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
-            if (redirectionsLimit instanceof Integer maxRedirects && redirectionsCount > maxRedirects) {
+            if (redirectionsLimit instanceof Integer maxRedirects && ++redirectionsCount > maxRedirects) {
+                final var rc = redirectionsCount;
                 LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
-                        .formatted(redirectionsCount, requestContext.getUri(), location, maxRedirects));
+                        .formatted(rc, requestContext.getUri(), location, maxRedirects));
+                requestContext.setProperty(REDIRECTIONS_COUNT, redirectionsCount);
                 requestContext.abortWith(Response.status(PERMANENT_REDIRECT).location(location).build());
                 return;
             }
@@ -76,6 +76,7 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
         if (!target.equals(requestContext.getUri()))
             LOGGER.finer(() -> "Following permanent redirect from '%s' to '%s'..."
                     .formatted(target, requestContext.getUri()));
+        requestContext.setProperty(REDIRECTIONS_COUNT, redirectionsCount);
     }
 
     @Override
