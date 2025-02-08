@@ -55,7 +55,8 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
 
     @Override
     public void filter(final ClientRequestContext requestContext) throws IOException {
-        if (!requestContext.hasProperty(REDIRECTIONS_LIMIT))
+        final var redirectionsLimit = requestContext.getProperty(REDIRECTIONS_LIMIT);
+        if (redirectionsLimit == null)
             return;
 
         if (!requestContext.hasProperty(REDIRECTIONS_COUNT))
@@ -64,7 +65,6 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
         final var target = requestContext.getUri();
         while (PERMANENT_REDIRECTION_LOCATIONS.get(requestContext.getUri()) instanceof URI location) {
             final var redirectsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
-            final var redirectionsLimit = requestContext.getProperty(REDIRECTIONS_LIMIT);
             if (redirectionsLimit instanceof Integer maxRedirects && redirectsCount > maxRedirects) {
                 LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
                         .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
@@ -81,7 +81,8 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
     @Override
     public void filter(final ClientRequestContext requestContext, final ClientResponseContext responseContext)
             throws IOException {
-        if (!requestContext.hasProperty(REDIRECTIONS_LIMIT))
+        final var redirectionsLimit = requestContext.getProperty(REDIRECTIONS_LIMIT);
+        if (redirectionsLimit == null)
             return;
 
         if (responseContext.getStatusInfo().getFamily() != REDIRECTION) {
@@ -99,7 +100,6 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
             return;
         }
 
-        final var redirectionsLimit = requestContext.getProperty(REDIRECTIONS_LIMIT);
         if (redirectionsLimit instanceof Integer maxRedirects && redirectsCount > maxRedirects) {
             LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
                     .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
