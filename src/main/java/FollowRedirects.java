@@ -64,10 +64,10 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
 
         final var target = requestContext.getUri();
         while (PERMANENT_REDIRECTION_LOCATIONS.get(requestContext.getUri()) instanceof URI location) {
-            final var redirectsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
-            if (redirectionsLimit instanceof Integer maxRedirects && redirectsCount > maxRedirects) {
+            final var redirectionsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
+            if (redirectionsLimit instanceof Integer maxRedirects && redirectionsCount > maxRedirects) {
                 LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
-                        .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
+                        .formatted(redirectionsCount, requestContext.getUri(), location, maxRedirects));
                 requestContext.abortWith(Response.status(PERMANENT_REDIRECT).location(location).build());
                 return;
             }
@@ -91,18 +91,18 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
             return;
         }
 
-        final var redirectsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
+        final var redirectionsCount = (int) requestContext.getProperty(REDIRECTIONS_COUNT) + 1;
         final var location = responseContext.getLocation();
 
         if (location == null) {
             LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to' %s', as 'Location' header is missing."
-                    .formatted(redirectsCount, requestContext.getUri()));
+                    .formatted(redirectionsCount, requestContext.getUri()));
             return;
         }
 
-        if (redirectionsLimit instanceof Integer maxRedirects && redirectsCount > maxRedirects) {
+        if (redirectionsLimit instanceof Integer maxRedirects && redirectionsCount > maxRedirects) {
             LOGGER.severe(() -> "Ignoring redirect #%d from '%s' to '%s', as limit %d is exceeded."
-                    .formatted(redirectsCount, requestContext.getUri(), location, maxRedirects));
+                    .formatted(redirectionsCount, requestContext.getUri(), location, maxRedirects));
             return;
         }
 
@@ -113,12 +113,12 @@ final class FollowRedirects implements ClientRequestFilter, ClientResponseFilter
         }
 
         LOGGER.fine(() -> "Following redirect #%d from '%s' to '%s'..."
-                .formatted(redirectsCount, requestContext.getUri(), location));
+                .formatted(redirectionsCount, requestContext.getUri(), location));
         final var response = requestContext.getClient()
                 .target(location).request()
                 .headers(requestContext.getHeaders())
                 .build(requestContext.getMethod())
-                .property(REDIRECTIONS_COUNT, redirectsCount)
+                .property(REDIRECTIONS_COUNT, redirectionsCount)
                 .invoke();
         responseContext.setStatusInfo(response.getStatusInfo());
         responseContext.getHeaders().clear();
