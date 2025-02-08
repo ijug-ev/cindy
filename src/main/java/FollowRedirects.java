@@ -1,7 +1,6 @@
 import static jakarta.ws.rs.core.Response.Status.MOVED_PERMANENTLY;
 import static jakarta.ws.rs.core.Response.Status.PERMANENT_REDIRECT;
 import static jakarta.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
