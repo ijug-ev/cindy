@@ -17,6 +17,7 @@
   -	`CINDY_DATA`: File system folder where Cindy persists internal data. For example, Cindy rembembers the instant when it last pulled calenders, so it understands which calender events are new/modified, and which are old. The default is `.`
   -	`CINDY_POLLING_SECONDS`: Time between two calendar polls. The default frequency is one minute, i. e. `60`.
   - `CINDY_CALENDAR_SOURCES`: Comma-separated list of download URLs of calendars to poll. There is no default.
+  - `CINDY_TARGET_ZONE`: Timezone to use when formatting event message (e. g. "Europe/Berlin" will tell German local time in event message). Default is host's timezone.
 
 
 ## Build

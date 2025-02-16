@@ -65,12 +65,12 @@ import social.bigbone.api.exception.BigBoneRequestException;
  */
 public final class CindyBootstrap {
 	private static final int MAXIMUM_MASTODON_MESSAGE_LENGTH = 500;
-	private static final DateTimeFormatter GERMAN_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy HH:mm", GERMANY);
-	private static final DateTimeFormatter GERMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy", GERMANY);
 	private static final Logger LOGGER = Logger.getLogger(CindyBootstrap.class.getName());
-	private static final ZoneId EUROPE_BERLIN = ZoneId.of("Europe/Berlin");
 
 	public static void main(final String[] args) throws InterruptedException, ExecutionException {
+		final var targetZone = Optional.ofNullable(System.getenv("CINDY_TARGET_ZONE")).map(ZoneId::of).orElseGet(ZoneId::systemDefault);
+		final var TARGET_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy HH:mm", GERMANY).withZone(targetZone);
+		final var TARGET_DATE_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy", GERMANY).withZone(targetZone);
 		final var mastodonHost = System.getenv("CINDY_MASTODON_HOST");
 		final var mastodonAccessToken = System.getenv("CINDY_MASTODON_ACCESS_TOKEN");
 		final var lastRunFile = Path.of(System.getenv().getOrDefault("CINDY_DATA", "."), "lastRun");
@@ -177,8 +177,8 @@ public final class CindyBootstrap {
 											switch (event.begin()) {
 												case ZonedDateTime zonedDatetime when zonedDatetime.toInstant().isAfter(startOfPullingCalendar) -> true;
 												case OffsetDateTime offsetDateTime when offsetDateTime.toInstant().isAfter(startOfPullingCalendar) -> true;
-												case LocalDateTime localDateTime when localDateTime.atZone(EUROPE_BERLIN).toInstant().isAfter(startOfPullingCalendar) -> true;
-												case LocalDate localDate when localDate.atStartOfDay().atZone(EUROPE_BERLIN).toInstant().isAfter(startOfPullingCalendar) -> true;
+												case LocalDateTime localDateTime when localDateTime.atZone(targetZone).toInstant().isAfter(startOfPullingCalendar) -> true;
+												case LocalDate localDate when localDate.atStartOfDay().atZone(targetZone).toInstant().isAfter(startOfPullingCalendar) -> true;
 												case ZonedDateTime zonedDatetime -> {
 													LOGGER.finer(() -> "Ignoring event because it begins in the past: '%s'.".formatted(event.uid()));
 													yield false;
@@ -223,10 +223,10 @@ public final class CindyBootstrap {
 											case null:
 												break;
 											case LocalDate ld:
-												message.append("\n📅 ").append(GERMAN_DATE_FORMATTER.format(ld));
+												message.append("\n📅 ").append(TARGET_DATE_FORMATTER.format(ld));
 												break;
 											default:
-												message.append("\n📅 ").append(GERMAN_TIMESTAMP_FORMATTER.format(event.begin()));
+												message.append("\n📅 ").append(TARGET_TIMESTAMP_FORMATTER.format(event.begin()));
 										}
 										if (event.location() != null)
 											message.append("\n🏠️ ").append(event.location());
