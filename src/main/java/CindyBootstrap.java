@@ -161,7 +161,7 @@ public final class CindyBootstrap {
 								iCalendar.getComponents(VEVENT).stream()
 										.filter(VEvent.class::isInstance)
 										.map(VEvent.class::cast)
-										.peek(vevent -> LOGGER.finest(() -> "Received VEVENT: %s".formatted(vevent)))
+										.peek(vevent -> LOGGER.finest(() -> "Received VEVENT:%n%s".formatted(vevent)))
 										.map(Event::of)
 										.filter(event -> {
 											if (Instant.from(event.version()).isAfter(lastRun))
