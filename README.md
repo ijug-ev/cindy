@@ -11,6 +11,7 @@
 ## Deploy
 
 * `docker run --name cindy -d -e CINDY_IP_PORT=7231 -e ... -P ghcr.io/ijug-ev/cindy`: Cindy will listen to requests on port 7231.
+  - `CINDY_LOG_LEVEL`: Cindy will log all events with this (or higher) level. Possible values are `SEVERE`, `WARNING`, `INFO`, `FINE`, `FINER`, `FINEST`; `ALL` is an alias for `FINEST`. The default is `INFO`.
   - `CINDY_IP_PORT`: Cindy will listen to this IP port. The default is `8080`.
   -	`CINDY_MASTODON_HOST`: Cindy will publish events on this Mastodon host. There is no default.
   -	`CINDY_MASTODON_ACCESS_TOKEN`: Cindy uses this access token to log in to the Mastodon host. There is no default.
