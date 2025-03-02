@@ -68,16 +68,18 @@ public final class CindyBootstrap {
 	private static final int MAXIMUM_MASTODON_MESSAGE_LENGTH = 500;
 	private static final Logger LOGGER = Logger.getLogger(CindyBootstrap.class.getName());
 
-	private static final void configureLogLevel(final Logger logger, final Level level) {
+	private static final void configureHandlerLogLevel(final Logger logger, final Level level) {
 		if (logger.getParent() != null)
-			configureLogLevel(logger.getParent(), level);
-		logger.setLevel(level);
+			configureHandlerLogLevel(logger.getParent(), level);
 		for (final var handler : logger.getHandlers())
 			handler.setLevel(level);
 	}
 
 	public static void main(final String[] args) throws InterruptedException, ExecutionException {
-		Optional.ofNullable(System.getenv("CINDY_LOG_LEVEL")).map(Level::parse).ifPresent(level -> configureLogLevel(LOGGER, level));
+		Optional.ofNullable(System.getenv("CINDY_LOG_LEVEL")).map(Level::parse).ifPresent(level -> {
+			LOGGER.setLevel(level);
+			configureHandlerLogLevel(LOGGER, level);
+		});
 
 		final var targetZone = Optional.ofNullable(System.getenv("CINDY_TARGET_ZONE")).map(ZoneId::of).orElseGet(ZoneId::systemDefault);
 		final var TARGET_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("d. LLLL yyyy HH:mm", GERMANY).withZone(targetZone);
