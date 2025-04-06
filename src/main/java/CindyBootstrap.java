@@ -300,6 +300,15 @@ public final class CindyBootstrap {
 
 	private static class CindyApplication extends Application {
 		@Override
+		public Map<String, Object> getProperties() {
+			// As we're post Java 11, there is no JAXB in the JRE, so JAX-RS would complain about "missing" JAXB.
+			// Log cluttering is prevented by disabling unused JAXB-dependent features.
+			return Map.of(
+					"jersey.config.disableDefaultProvider", "ALL",  // We don't use JAX-RS default providers, e.g. JAXB
+					"jersey.config.server.wadl.disableWadl", true); // We don't use WADL
+		}
+
+		@Override
 		public Set<Class<?>> getClasses() {
 			return Set.of(CindyResource.class);
 		}
