@@ -116,6 +116,7 @@ public final class CindyBootstrap {
 			});
 
 			final var client = ClientBuilder.newClient()
+				.property("jersey.config.disableDefaultProvider", "ALL")
 				.register(FollowRedirects.class)
 				.register(ICalendarMessageBodyReader.class);
 			final var calendarSources = sources.stream().map(source -> new CalendarSource(source, client
