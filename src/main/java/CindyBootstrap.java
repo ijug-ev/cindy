@@ -89,7 +89,7 @@ public final class CindyBootstrap {
 		final var lastRunFile = Path.of(System.getenv().getOrDefault("CINDY_DATA", "."), "lastRun");
 		final var ipPort = Integer.parseInt(System.getenv().getOrDefault("CINDY_IP_PORT", "8080"));
 		final var pollingInterval = 1_000 * Integer.parseInt(System.getenv().getOrDefault("CINDY_POLLING_SECONDS", "60"));
-		final var sources = List.of(System.getenv().getOrDefault("CINDY_CALENDAR_SOURCES", "").split(",")).stream().map(String::trim).map(URI::create).toList();
+		final var sources = List.of(System.getenv().getOrDefault("CINDY_CALENDAR_SOURCES", "").split(",")).stream().map(String::trim).filter(source -> !source.isEmpty()).map(URI::create).toList();
 		final var redirectionsLimit = Integer.parseInt(System.getenv().getOrDefault("CINDY_REDIRECTIONS_LIMIT", "50"));
 
 		if (args.length > 0 && "--check-health".equals(args[0])) {
@@ -105,8 +105,17 @@ public final class CindyBootstrap {
 				LOGGER.warning("CINDY_MASTODON_SOURCE is missing");
 		}
 
+		final var client = ClientBuilder.newClient()
+			.property("jersey.config.disableDefaultProvider", "ALL")
+			.register(FollowRedirects.class)
+			.register(ICalendarMessageBodyReader.class);
+		final var calendarSources = sources.stream().map(source -> new CalendarSource(source, client
+				.target(source).request()
+				.buildGet()
+				.property(FollowRedirects.REDIRECTIONS_LIMIT, redirectionsLimit)))
+				.toList();
 		final var config = SeBootstrap.Configuration.builder().port(ipPort).build();
-		SeBootstrap.start(CindyApplication.class, config).thenAccept(instance -> {
+		SeBootstrap.start(new CindyApplication(new CindyResource(calendarSources)), config).thenAccept(instance -> {
 			instance.stopOnShutdown(stopResult -> {
 				try {
 					System.err.printf("Stop result: %s%n", stopResult);
@@ -114,16 +123,6 @@ public final class CindyBootstrap {
 					e.printStackTrace();
 				}
 			});
-
-			final var client = ClientBuilder.newClient()
-				.property("jersey.config.disableDefaultProvider", "ALL")
-				.register(FollowRedirects.class)
-				.register(ICalendarMessageBodyReader.class);
-			final var calendarSources = sources.stream().map(source -> new CalendarSource(source, client
-					.target(source).request()
-					.buildGet()
-					.property(FollowRedirects.REDIRECTIONS_LIMIT, redirectionsLimit)))
-					.toList();
 
 			final var message = new StringBuilder(MAXIMUM_MASTODON_MESSAGE_LENGTH);
 
@@ -300,6 +299,12 @@ public final class CindyBootstrap {
 	}
 
 	private static class CindyApplication extends Application {
+		private final CindyResource resource;
+
+		private CindyApplication(final CindyResource resource) {
+			this.resource = resource;
+		}
+
 		@Override
 		public Map<String, Object> getProperties() {
 			// As we're post Java 11, there is no JAXB in the JRE, so JAX-RS would complain about "missing" JAXB.
@@ -310,8 +315,8 @@ public final class CindyBootstrap {
 		}
 
 		@Override
-		public Set<Class<?>> getClasses() {
-			return Set.of(CindyResource.class);
+		public Set<Object> getSingletons() {
+			return Set.of(resource);
 		}
 	}
 
@@ -336,7 +341,7 @@ public final class CindyBootstrap {
 		}
 	}
 
-	private static final record Event(
+	static record Event(
 			String uid,
 			Temporal version,
 			String summary,
@@ -346,7 +351,7 @@ public final class CindyBootstrap {
 			String url,
 			String classification,
 			String status) {
-		private static Event of(final VEvent vevent) {
+		static Event of(final VEvent vevent) {
 			return new Event(
 					textOrNull(vevent, UID),
 					Optional.ofNullable(temporalOrNull(vevent, LAST_MODIFIED))
@@ -361,16 +366,16 @@ public final class CindyBootstrap {
 					textOrNull(vevent, STATUS));
 		}
 
-		private static String textOrNull(final Component component, final String propertyName) {
+		static String textOrNull(final Component component, final String propertyName) {
 			return component.getProperty(propertyName).map(Property::getValue).orElse(null);
 		}
 
-		private static Temporal temporalOrNull(final Component component, final String datePropertyName) {
+		static Temporal temporalOrNull(final Component component, final String datePropertyName) {
 			return component.getProperty(datePropertyName).filter(DateProperty.class::isInstance).map(DateProperty.class::cast).map(DateProperty::getDate).orElse(null);
 		}
 	};
 
-	private static record CalendarSource(URI uri, Invocation invocation) {
+	static record CalendarSource(URI uri, Invocation invocation) {
 		CalendarSource(URI uri, Invocation invocation) {
 			this.uri = requireNonNull(uri);
 			this.invocation = requireNonNull(invocation);
