@@ -91,6 +91,7 @@ public class CindyResource {
 
   private static ZonedDateTime startDateTime(final Temporal begin) {
     return switch (begin) {
+      case null -> null;
       case ZonedDateTime dateTime -> dateTime.withZoneSameInstant(EVENT_ZONE);
       case OffsetDateTime dateTime -> dateTime.atZoneSameInstant(EVENT_ZONE);
       case LocalDateTime dateTime -> dateTime.atZone(EVENT_ZONE);
