@@ -20,7 +20,7 @@
   - `CINDY_CALENDAR_SOURCES`: Comma-separated list of download URLs of calendars to poll. There is no default.
   - `CINDY_TARGET_ZONE`: Timezone to use when formatting event message (e. g. "Europe/Berlin" will tell German local time in event message). Default is host's timezone.
 
-The `GET /cindy/events.csv` endpoint downloads a UTF-8 CSV containing confirmed, public or unclassified events starting within the next month from every configured calendar source. The columns are ICS source name (the calendar's `X-WR-CALNAME`, or its URL if no name is set), start time in the `Europe/Berlin` timezone, title, description, and location. The location column is empty when no location is given. Private, confidential, cancelled, and otherwise non-public events are omitted.
+The `GET /cindy/events.csv` endpoint downloads a UTF-8 CSV containing confirmed, public or unclassified events starting within the next month from every configured calendar source. The columns are ICS source name (the calendar's `X-WR-CALNAME`, or the source host if no name is set), start time in the `Europe/Berlin` timezone, title, description, and location. The location column is empty when no location is given. Private, confidential, cancelled, and otherwise non-public events are omitted. The source URL's path, query, and credentials are not included in the fallback name.
 
 
 ## Build

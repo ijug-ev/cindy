@@ -1,5 +1,6 @@
 import static net.fortuna.ical4j.model.Component.VEVENT;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -61,7 +62,7 @@ public class CindyResource {
       try {
         final Calendar calendar = source.invocation().invoke(Calendar.class);
         final var sourceName = CindyBootstrap.Event.textOrNull(calendar, "X-WR-CALNAME");
-        final var name = sourceName == null || sourceName.isBlank() ? source.uri().toString() : sourceName;
+        final var name = sourceName == null || sourceName.isBlank() ? sourceLabel(source.uri()) : sourceName;
         calendar.getComponents(VEVENT).stream()
             .filter(VEvent.class::isInstance)
             .map(VEvent.class::cast)
@@ -102,6 +103,20 @@ public class CindyResource {
 
   private static String csvCell(final String value) {
     return "\"" + (value == null ? "" : value.replace("\"", "\"\"")) + "\"";
+  }
+
+  private static String sourceLabel(final URI uri) {
+    final var label = new StringBuilder();
+    if (uri.getHost() != null) {
+      if (uri.getScheme() != null)
+        label.append(uri.getScheme()).append("://");
+      label.append(uri.getHost());
+    } else if (uri.getScheme() != null) {
+      label.append(uri.getScheme());
+    }
+    if (uri.getPort() >= 0)
+      label.append(':').append(uri.getPort());
+    return label.isEmpty() ? "calendar" : label.toString();
   }
 
   private record CsvEvent(String sourceName, CindyBootstrap.Event event, ZonedDateTime start) {
