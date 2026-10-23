@@ -61,7 +61,7 @@ public class CindyResource {
     for (final var source : calendarSources) {
       try {
         final Calendar calendar = source.invocation().invoke(Calendar.class);
-        final var sourceName = CindyBootstrap.Event.textOrNull(calendar, "X-WR-CALNAME");
+        final var sourceName = calendar.getProperty("X-WR-CALNAME").map(property -> property.getValue()).orElse(null);
         final var name = sourceName == null || sourceName.isBlank() ? sourceLabel(source.uri()) : sourceName;
         calendar.getComponents(VEVENT).stream()
             .filter(VEvent.class::isInstance)
