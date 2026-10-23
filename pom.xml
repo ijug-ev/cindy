@@ -13,7 +13,7 @@
 		<jaxrs.version>3.1.0</jaxrs.version>
 		<jersey.version>3.1.10</jersey.version>
 		<ical4j.version>4.1.0</ical4j.version>
-		<bigbone.version>2.0.0-SNAPSHOT</bigbone.version>
+		<bigbone.version>2.0.0</bigbone.version>
 	</properties>
 
 	<dependencyManagement>
@@ -72,7 +72,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>social.bigbone</groupId>
+			<groupId>io.github.pattafeufeu</groupId>
 			<artifactId>bigbone</artifactId>
 			<version>${bigbone.version}</version>
 		</dependency>
