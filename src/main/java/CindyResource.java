@@ -30,9 +30,9 @@ import net.fortuna.ical4j.model.component.VEvent;
 public class CindyResource {
   private static final Logger LOGGER = Logger.getLogger(CindyResource.class.getName());
   private static final ZoneId EVENT_ZONE = ZoneId.of("Europe/Berlin");
-  private static final DateTimeFormatter START_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z", Locale.ROOT)
+  private static final DateTimeFormatter START_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.ROOT)
       .withZone(EVENT_ZONE);
-  private static final String CSV_HEADER = "ICS source,Start (Europe/Berlin),Title,Description,Location";
+  private static final String CSV_HEADER = "ICS source,Start (Europe/Berlin),Title,Description,Location,URL";
 
   private final List<CindyBootstrap.CalendarSource> calendarSources;
 
@@ -82,12 +82,24 @@ public class CindyResource {
         .append(csvCell(event.sourceName())).append(',')
         .append(csvCell(START_FORMATTER.format(event.start()))).append(',')
         .append(csvCell(event.event().summary())).append(',')
-        .append(csvCell(event.event().description())).append(',')
-        .append(csvCell(event.event().location())).append("\r\n"));
+        .append(csvCell(cleanDescription(event))).append(',')
+        .append(csvCell(event.event().location())).append(',')
+        .append(csvCell(event.event().url())).append("\r\n"));
 
     return Response.ok(csv.toString(), "text/csv; charset=utf-8")
         .header("Content-Disposition", "attachment; filename=\"events.csv\"")
         .build();
+  }
+
+  private static String cleanDescription(CsvEvent csvEvent) {
+    CindyBootstrap.Event event = csvEvent.event();
+    String sourceName = csvEvent.sourceName;
+    String description = event.description().trim();
+    if (description.startsWith(sourceName)) {
+      description = description.substring(sourceName.length()).trim();
+    }
+
+    return description;
   }
 
   private static ZonedDateTime startDateTime(final Temporal begin) {
