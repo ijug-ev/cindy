@@ -55,7 +55,7 @@ public class CindyResource {
   @Produces("text/csv; charset=utf-8")
   public Response eventsCsv() {
     final var now = ZonedDateTime.now(EVENT_ZONE);
-    final var end = now.plusMonths(1);
+    //final var end = now.plusMonths(1);
     final var events = new ArrayList<CsvEvent>();
 
     for (final var source : calendarSources) {
@@ -70,7 +70,7 @@ public class CindyResource {
             .filter(event -> event.status() == null || event.status().equals("CONFIRMED"))
             .filter(event -> event.classification() == null || event.classification().equals("PUBLIC"))
             .map(event -> new CsvEvent(name, event, startDateTime(event.begin())))
-            .filter(event -> event.start() != null && !event.start().isBefore(now) && event.start().isBefore(end))
+            .filter(event -> event.start() != null && !event.start().isBefore(now)) //&& event.start().isBefore(end))
             .forEach(events::add);
       } catch (final ProcessingException | WebApplicationException e) {
         LOGGER.warning(() -> "Failed to download calendar from '%s': '%s'".formatted(source.uri(), e.getMessage()));
