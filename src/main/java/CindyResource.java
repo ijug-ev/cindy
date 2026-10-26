@@ -104,7 +104,12 @@ public class CindyResource {
   private static String cleanDescription(CsvEvent csvEvent) {
     CindyBootstrap.Event event = csvEvent.event();
     String sourceName = csvEvent.sourceName;
-    String description = event.description().trim();
+    String description = event.description();
+    if (description==null) {
+      description = "";
+    } else {
+      description=description.trim();
+    }
     if (description.startsWith(sourceName)) {
       description = description.substring(sourceName.length()).trim();
     }
