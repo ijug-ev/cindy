@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jakarta.ws.rs.ProcessingException;
@@ -55,15 +54,6 @@ public class CindyResource {
   @Path("events.csv")
   @Produces("text/csv; charset=utf-8")
   public Response eventsCsv() {
-    try {
-      return buildEventsCsv();
-    } catch (final RuntimeException e) {
-      LOGGER.log(Level.SEVERE, "Failed to produce events.csv", e);
-      return Response.serverError().entity("").type("text/plain").build();
-    }
-  }
-
-  private Response buildEventsCsv() {
     final var now = ZonedDateTime.now(EVENT_ZONE);
     //final var end = now.plusMonths(1);
     final var events = new ArrayList<CsvEvent>();
