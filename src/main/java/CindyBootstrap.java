@@ -316,7 +316,7 @@ public final class CindyBootstrap {
 
 		@Override
 		public Set<Object> getSingletons() {
-			return Set.of(resource);
+			return Set.of(resource, new RuntimeExceptionMapper());
 		}
 	}
 
